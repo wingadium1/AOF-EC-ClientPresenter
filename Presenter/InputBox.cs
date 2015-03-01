@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Collections;
 using System.ComponentModel;
 using System.Windows.Forms;
+using System.Collections.Generic;
 
 namespace Presenter
 {
@@ -46,6 +47,7 @@ namespace Presenter
         private static int _xPos = -1;
         private static int _yPos = -1;
 
+        
         #endregion
 
         #region Windows Form code

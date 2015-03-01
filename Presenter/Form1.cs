@@ -28,6 +28,10 @@ namespace Presenter
         byte[] inputData = new byte[1024];
 
         TcpClient _client;
+
+        private List<Label> listName = new List<Label>();
+        private List<Label> listAns = new List<Label>();
+        int current = 0;
         public TcpClient Client
         {
             get { return _client; }
@@ -50,6 +54,18 @@ namespace Presenter
         private void Form1_Load(object sender, EventArgs e)
         {
             inputIP();
+            progressBar1.Minimum = 0;
+            progressBar1.Maximum = 100;
+            listName.Add(label1);
+            listName.Add(label2);
+            listName.Add(label3);
+            listName.Add(label4);
+
+            listAns.Add(lbAns1);
+            listAns.Add(lbAns2);
+            listAns.Add(lbAns3);
+            listAns.Add(lbAns4);
+
         }
 
         private void inputIP()
@@ -103,6 +119,7 @@ namespace Presenter
                                         pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
                                         pictureBox1.ClientSize = new Size(600, 400);
                                         pictureBox1.Image = (Image)image;
+                                        current = 0;
                                     }
                                     {
 
@@ -111,6 +128,10 @@ namespace Presenter
                                     break;
                                 case (Utility.Message.Type.ShowAns):
                                     labelAnswer.Visible = true;
+                                    break;
+                                case (Utility.Message.Type.Ans):
+                                    listAns[current].Text = reciveMessage.message;
+                                    listName[current].Text = reciveMessage.name + "   at  " + String.Format("{0}''{1}", timeLeft / 10, (timeLeft % 10));
                                     break;
                             }
                         }
@@ -197,6 +218,8 @@ namespace Presenter
                 labelTimer.Text = "10''00";
                 timerCountDown.Interval = 100;
                 timerCountDown.Start();
+                progressBar1.Value = 100;
+                progressBar1.Step = -1;
             }
         }
 
@@ -224,7 +247,9 @@ namespace Presenter
                 // Display the new time left 
                 // by updating the Time Left label.
                 timeLeft -= 1;
+                progressBar1.PerformStep();
                 labelTimer.Text = String.Format("{0}''{1}", timeLeft / 10, (timeLeft % 10));
+                label8.Text = String.Format("{0}''{1}", timeLeft / 10, (timeLeft % 10));
             }
             else
             {
@@ -237,9 +262,20 @@ namespace Presenter
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
-            Client.Close();
-            thConnecttoServer.Abort();
-            Application.Exit();
+            try
+            {
+                Client.Close();
+
+                thConnecttoServer.Abort();
+            }
+            catch (Exception ex)
+            {
+
+            }
+            finally
+            {
+                Application.Exit();
+            }
         }
 
     }

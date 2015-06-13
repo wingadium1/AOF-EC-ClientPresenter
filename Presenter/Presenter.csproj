@@ -42,7 +42,7 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Utility">
-      <HintPath>..\..\WindowsFormsApplication1\Utility\bin\Debug\Utility.dll</HintPath>
+      <HintPath>..\..\AOF-EC-Server\WindowsFormsApplication1\bin\Debug\Utility.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

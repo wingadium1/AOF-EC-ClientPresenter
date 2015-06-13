@@ -16,7 +16,7 @@ namespace Presenter
     public partial class Form1 : Form
     {
         #region Variable
-
+        private string videoFolder = System.IO.Directory.GetCurrentDirectory() + @"\Video";
         //defaut address
         string IP = null;
         int PORT = 2505;
@@ -92,7 +92,7 @@ namespace Presenter
 
                 Client = new TcpClient();
                 Client.Connect(IPAddress.Parse(IP), PORT);
-
+                Console.WriteLine("Fucking bug");
                 while (true)//Trong khi vẫn còn kết nối
                 {
                     //Nhận dữ liệu từ máy chủ
@@ -107,9 +107,26 @@ namespace Presenter
                             switch (reciveMessage.type)
                             {
                                 case (Utility.Message.Type.Quest):
-                                    labelQuestion.Text = reciveMessage.x.question;
-                                    labelAnswer.Text = "The true answer is : " + reciveMessage.x.ans;
-                                    labelAnswer.Visible = false;
+                                    String quest = reciveMessage.x.question;
+                                    if (quest.Length > 80)
+                                    {
+                                        try
+                                        {
+                                            labelQuestion.Text = quest.Substring(0, quest.LastIndexOf(" ", 79));
+                                            labelQuestion2.Text = quest.Substring(quest.LastIndexOf(" ", 79));
+                                        }
+                                        catch (Exception)
+                                        {
+                                            labelQuestion.Text = quest.Substring(0,79);
+                                            labelQuestion2.Text = quest.Substring(79);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        labelQuestion.Text = quest;
+                                        labelQuestion2.Text = "";
+                                    }
+                                    labelAnswer.Text = reciveMessage.x.ans;
                                     if (null != reciveMessage.image)
                                     {
                                         MemoryStream ms = new MemoryStream(reciveMessage.image);
@@ -121,17 +138,34 @@ namespace Presenter
                                         pictureBox1.Image = (Image)image;
                                         current = 0;
                                     }
+                                    else
                                     {
-
-                                        StartTheQuestion();
+                                        pictureBox1.Image = null;
                                     }
-                                    break;
-                                case (Utility.Message.Type.ShowAns):
-                                    labelAnswer.Visible = true;
+                                    StartTheQuestion();
+                                    if (reciveMessage.recount)
+                                    {
+                                        Console.WriteLine(reciveMessage.recount.ToString() + reciveMessage.x.questionTime);
+                                        timeLeft = reciveMessage.x.questionTime * 10;
+                                        
+                                    }
+
                                     break;
                                 case (Utility.Message.Type.Ans):
-                                    listAns[current].Text = reciveMessage.message;
-                                    listName[current].Text = reciveMessage.name + "   at  " + String.Format("{0}''{1}", timeLeft / 10, (timeLeft % 10));
+                                    timeLeft = 0;
+                                    int time = timeLeft;
+                                    labelTimer.Text = String.Format("{0}''{1}", time / 10, (time % 10));
+                                    labelTimer.Text = reciveMessage.name + " rang";
+                                    break;
+
+                                case (Utility.Message.Type.PlayVideo):
+                                    Console.Write(videoFolder + @"\" + reciveMessage.message);
+                                    PlayMedia(videoFolder + @"\" + reciveMessage.message);
+                                    break;
+                                case (Utility.Message.Type.Cnt):
+                                        timeLeft = 100;
+                                    break;
+                                default:
                                     break;
                             }
                         }
@@ -214,7 +248,6 @@ namespace Presenter
             }
             else
             {
-                timeLeft = 100;
                 labelTimer.Text = "10''00";
                 timerCountDown.Interval = 100;
                 timerCountDown.Start();
@@ -253,10 +286,6 @@ namespace Presenter
             }
             else
             {
-                // If the user ran out of time, stop the timer, show  and fill in the answers.
-                timerCountDown.Stop();
-                labelTimer.Text = "Time's up!";
-                // MessageBox.Show("Time's up");
             }
         }
 
@@ -275,6 +304,23 @@ namespace Presenter
             finally
             {
                 Application.Exit();
+            }
+        }
+
+        delegate void PlayMediaDelegate(String mediaFile);
+        private void PlayMedia(String mediaFile)
+        {
+            if (this.InvokeRequired)
+            {
+                PlayMediaDelegate d = new PlayMediaDelegate(PlayMedia);
+
+                this.Invoke(d, new object[] { mediaFile });
+            }
+            else
+            {
+                var playForm = new Utility.Form1(mediaFile);
+                playForm.Show();
+
             }
         }
 
